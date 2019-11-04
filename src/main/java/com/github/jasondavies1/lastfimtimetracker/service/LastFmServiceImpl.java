@@ -21,6 +21,14 @@ public class LastFmServiceImpl implements LastFmService {
         System.out.println(forEntity.getBody());
     }
 
+    @Override
+    public void getAlbum() {
+        final String apiKey = lastFmConfigurationProperties.getApiKey();
+        final String url = albumUrl(apiKey, "Sweet Valley", "Eternal Champ");
+        final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
+        System.out.println(forEntity.getBody());
+    }
+
     private String trackUrl(
             final String apiKey,
             final int page){
@@ -31,6 +39,18 @@ public class LastFmServiceImpl implements LastFmService {
                 "&page=" + page +
                 "&limit=200" +
                 "&extended=1" +
+                "&format=json";
+    }
+
+    private String albumUrl(
+            final String apiKey,
+            final String artist,
+            final String album) {
+        return "http://ws.audioscrobbler.com/2.0/" +
+                "?method=album.getinfo" +
+                "&api_key=" + apiKey +
+                "&artist=" + artist +
+                "&album=" + album +
                 "&format=json";
     }
 

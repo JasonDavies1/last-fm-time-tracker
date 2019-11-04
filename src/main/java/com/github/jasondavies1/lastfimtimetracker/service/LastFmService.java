@@ -4,4 +4,5 @@ public interface LastFmService {
 
     void getAllTracks();
 
+    void getAlbum();
 }

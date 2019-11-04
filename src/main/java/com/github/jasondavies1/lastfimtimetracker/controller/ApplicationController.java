@@ -19,6 +19,7 @@ public class ApplicationController {
     @ResponseBody
     public ResponseEntity get() {
         lastFmService.getAllTracks();
+        lastFmService.getAlbum();
         return ResponseEntity.ok("hello world");
     }
 
