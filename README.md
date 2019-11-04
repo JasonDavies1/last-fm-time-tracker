@@ -1,4 +1,4 @@
-#Last FM Time Tracker 
+# Last FM Time Tracker 
 
 I use Last.fm - [a lot](https://www.last.fm/user/JasonDavies_)
 
@@ -16,13 +16,13 @@ is now gone. Last.FM users have been looking for time-based metrics for a long t
 
 *So I'm going to rebuild it* 
 
-#Disclaimer 
+# Disclaimer 
 
 Every time I try to complete this project, something gets in the way. After finding a bit of useful information from the 
 Last.FM developer API (Notably that the Album.getInfo API method returns track length) I'm keen to revisit and finally 
 put an end to my time-tracking worries. 
 
-#Anticipated Challenge
+# Anticipated Challenge
 
 I've listened to a few artists that use UNICODE in their names. It's going to be interesting to see how that transfers
 when making RESTful requests to the API for album information. Either way, it'll be fun, and by all accounts, I'd rather 
