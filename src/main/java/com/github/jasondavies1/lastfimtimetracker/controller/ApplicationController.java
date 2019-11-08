@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/")
 @RequiredArgsConstructor
@@ -17,9 +19,9 @@ public class ApplicationController {
 
     @GetMapping
     @ResponseBody
-    public ResponseEntity get() {
+    public ResponseEntity get() throws IOException {
         lastFmService.getAllTracks();
-        lastFmService.getAlbum();
+//        lastFmService.getAlbum();
         return ResponseEntity.ok("hello world");
     }
 
