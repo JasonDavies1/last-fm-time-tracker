@@ -59,24 +59,12 @@ public class LastFmServiceImpl implements LastFmService {
                     if (i % 10 == 0) {
                         log.info("processing page {} of {}", i, totalPages);
                     }
-
-                    final String body = getPage(i);
                     try {
-                        final Map map = mapper.readValue(body, Map.class);
+                        final Map map = mapper.readValue(getPage(i), Map.class);
                         final Map recentTracks = get(map, "recenttracks");
                         final List track = get(recentTracks, "track");
-
                         track.stream()
-                                .map(t -> {
-                                    final Map trackMap = (Map) t;
-                                    final Map artist = get(trackMap, "artist");
-                                    final Map album = get(trackMap, "album");
-                                    return TrackDTO.builder()
-                                            .artist(get(artist, "name"))
-                                            .albumName(get(album, "#text"))
-                                            .trackName(get(trackMap, "name"))
-                                            .build();
-                                })
+                                .map(t -> toTrackDto((Map) t))
                                 .forEach(trackDto -> Optional.ofNullable(trackCollection.get(trackDto))
                                         .ifPresentOrElse(
                                                 playCount -> trackCollection.put((TrackDTO) trackDto, (playCount + 1)),
@@ -85,9 +73,16 @@ public class LastFmServiceImpl implements LastFmService {
                         System.out.println("IOException");
                     }
                 });
+    }
 
-        System.out.println("ok");
-
+    private TrackDTO toTrackDto(final Map trackDetails) {
+        final Map artist = get(trackDetails, "artist");
+        final Map album = get(trackDetails, "album");
+        return TrackDTO.builder()
+                .artist(get(artist, "name"))
+                .albumName(get(album, "#text"))
+                .trackName(get(trackDetails, "name"))
+                .build();
     }
 
     @Override
