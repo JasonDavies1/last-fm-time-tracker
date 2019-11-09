@@ -1,7 +1,6 @@
 package com.github.jasondavies1.lastfimtimetracker.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.jasondavies1.lastfimtimetracker.configuration.LastFmConfigurationProperties;
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
