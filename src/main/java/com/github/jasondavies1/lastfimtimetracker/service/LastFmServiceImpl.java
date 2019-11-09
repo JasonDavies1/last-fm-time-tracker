@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class LastFmServiceImpl implements LastFmService {
 
-    private final LastFmConfigurationProperties lastFmConfigurationProperties;
+    private final LastFmUrlService urlService;
     private final ConversionService conversionService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -45,8 +45,7 @@ public class LastFmServiceImpl implements LastFmService {
 
     @Override
     public void getAlbum() {
-        final String apiKey = lastFmConfigurationProperties.getApiKey();
-        final String url = albumUrl(apiKey, "Sweet Valley", "Eternal Champ");
+        final String url = urlService.getAlbumsUrl("Sweet Valley", "Eternal Champ");
         final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
         System.out.println(forEntity.getBody());
     }
@@ -60,8 +59,7 @@ public class LastFmServiceImpl implements LastFmService {
     }
 
     private String getPage(final int pageNumber) {
-        final String apiKey = lastFmConfigurationProperties.getApiKey();
-        final String url = trackUrl(apiKey, pageNumber);
+        final String url = urlService.getTracksUrl(pageNumber);
         final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
         return forEntity.getBody();
     }
@@ -82,30 +80,4 @@ public class LastFmServiceImpl implements LastFmService {
             System.out.println("IOException");
         }
     }
-
-    private String trackUrl(
-            final String apiKey,
-            final int page) {
-        return "http://ws.audioscrobbler.com/2.0/" +
-                "?method=user.getrecenttracks" +
-                "&user=JasonDavies_" +
-                "&api_key=" + apiKey +
-                "&page=" + page +
-                "&limit=200" +
-                "&extended=1" +
-                "&format=json";
-    }
-
-    private String albumUrl(
-            final String apiKey,
-            final String artist,
-            final String album) {
-        return "http://ws.audioscrobbler.com/2.0/" +
-                "?method=album.getinfo" +
-                "&api_key=" + apiKey +
-                "&artist=" + artist +
-                "&album=" + album +
-                "&format=json";
-    }
-
 }
