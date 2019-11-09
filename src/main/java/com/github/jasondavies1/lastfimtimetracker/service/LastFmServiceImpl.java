@@ -5,6 +5,7 @@ import com.github.jasondavies1.lastfimtimetracker.configuration.LastFmConfigurat
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,24 +22,41 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class LastFmServiceImpl implements LastFmService {
 
-    private final RestTemplate restTemplate;
     private final LastFmConfigurationProperties lastFmConfigurationProperties;
+    private final ConversionService conversionService;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     private final Map<TrackDTO, Integer> trackCollection = new HashMap<>();
 
-    @SuppressWarnings("unchecked")
-    private static <T> T get(final Map map,
-                             final String key) {
-        return (T) map.get(key);
+    @Override
+    public void getAllTracks() throws IOException {
+        //TODO inline this variable if/when logging statement removed
+        final int totalPages = totalPages();
+
+        IntStream.rangeClosed(1, totalPages)
+                .forEach(currentPage -> {
+                    if (currentPage % 10 == 0) {
+                        log.info("processing page {} of {}", currentPage, totalPages);
+                    }
+                    addTracksToCollection(currentPage);
+                });
+    }
+
+    @Override
+    public void getAlbum() {
+        final String apiKey = lastFmConfigurationProperties.getApiKey();
+        final String url = albumUrl(apiKey, "Sweet Valley", "Eternal Champ");
+        final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
+        System.out.println(forEntity.getBody());
     }
 
     private int totalPages() throws IOException {
-        final ObjectMapper mapper = new ObjectMapper();
         final String body = getPage(1);
-        final Map map = mapper.readValue(body, Map.class);
-        final Map recentTracks = get(map, "recenttracks");
-        final Map attributes = get(recentTracks, "@attr");
-        return Integer.valueOf(get(attributes, "totalPages"));
+        final Map map = objectMapper.readValue(body, Map.class);
+        final Map recentTracks = (Map) map.get("recenttracks");
+        final Map attributes = (Map) recentTracks.get("@attr");
+        return Integer.valueOf((String) attributes.get("totalPages"));
     }
 
     private String getPage(final int pageNumber) {
@@ -48,49 +66,21 @@ public class LastFmServiceImpl implements LastFmService {
         return forEntity.getBody();
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public void getAllTracks() throws IOException {
-        final ObjectMapper mapper = new ObjectMapper();
-        final int totalPages = totalPages();
-
-        IntStream.rangeClosed(1, totalPages)
-                .forEach(i -> {
-                    if (i % 10 == 0) {
-                        log.info("processing page {} of {}", i, totalPages);
-                    }
-                    try {
-                        final Map map = mapper.readValue(getPage(i), Map.class);
-                        final Map recentTracks = get(map, "recenttracks");
-                        final List track = get(recentTracks, "track");
-                        track.stream()
-                                .map(t -> toTrackDto((Map) t))
-                                .forEach(trackDto -> Optional.ofNullable(trackCollection.get(trackDto))
-                                        .ifPresentOrElse(
-                                                playCount -> trackCollection.put((TrackDTO) trackDto, (playCount + 1)),
-                                                () -> trackCollection.put((TrackDTO) trackDto, 1)));
-                    } catch (final IOException e) {
-                        System.out.println("IOException");
-                    }
-                });
-    }
-
-    private TrackDTO toTrackDto(final Map trackDetails) {
-        final Map artist = get(trackDetails, "artist");
-        final Map album = get(trackDetails, "album");
-        return TrackDTO.builder()
-                .artist(get(artist, "name"))
-                .albumName(get(album, "#text"))
-                .trackName(get(trackDetails, "name"))
-                .build();
-    }
-
-    @Override
-    public void getAlbum() {
-        final String apiKey = lastFmConfigurationProperties.getApiKey();
-        final String url = albumUrl(apiKey, "Sweet Valley", "Eternal Champ");
-        final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
-        System.out.println(forEntity.getBody());
+    private void addTracksToCollection(final int page) {
+        try {
+            final Map map = objectMapper.readValue(getPage(page), Map.class);
+            final Map recentTracks = (Map) map.get("recenttracks");
+            final List track = (List) recentTracks.get("track");
+            track.stream()
+                    .map(t -> conversionService.convert(t, TrackDTO.class))
+                    .forEach(trackDto -> Optional.ofNullable(trackCollection.get(trackDto))
+                            .ifPresentOrElse(
+                                    playCount -> trackCollection.put((TrackDTO) trackDto, (playCount + 1)),
+                                    () -> trackCollection.put((TrackDTO) trackDto, 1)));
+        } catch (final IOException e) {
+            System.out.println("IOException");
+        }
     }
 
     private String trackUrl(
