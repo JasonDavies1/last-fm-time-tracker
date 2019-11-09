@@ -40,6 +40,7 @@ public class LastFmServiceImpl implements LastFmService {
                     }
                     addTracksToCollection(currentPage);
                 });
+        trackCollection.forEach(TrackDTO::setPlayCount);
     }
 
     @Override

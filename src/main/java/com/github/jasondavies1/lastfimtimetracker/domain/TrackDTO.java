@@ -13,4 +13,5 @@ public class TrackDTO {
     private String trackName;
     private String artist;
     private String albumName;
+    private Integer playCount;
 }
