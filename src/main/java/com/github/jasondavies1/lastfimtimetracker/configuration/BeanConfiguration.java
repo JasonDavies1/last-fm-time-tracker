@@ -2,6 +2,7 @@ package com.github.jasondavies1.lastfimtimetracker.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.jasondavies1.lastfimtimetracker.converter.MapToTrackDtoConverter;
+import com.github.jasondavies1.lastfimtimetracker.converter.TrackDtoToAlbumDtoConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 public class BeanConfiguration {
 
     private final MapToTrackDtoConverter mapToTrackDtoConverter;
+    private final TrackDtoToAlbumDtoConverter trackDtoToAlbumDtoConverter;
 
     @Bean
     public RestTemplate restTemplate() {
@@ -29,6 +31,7 @@ public class BeanConfiguration {
     public ConversionService conversionService() {
         final DefaultConversionService conversionService = new DefaultConversionService();
         conversionService.addConverter(mapToTrackDtoConverter);
+        conversionService.addConverter(trackDtoToAlbumDtoConverter);
         return conversionService;
     }
 

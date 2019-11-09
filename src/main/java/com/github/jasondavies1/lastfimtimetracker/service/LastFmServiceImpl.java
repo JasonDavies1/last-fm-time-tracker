@@ -1,6 +1,7 @@
 package com.github.jasondavies1.lastfimtimetracker.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.jasondavies1.lastfimtimetracker.domain.AlbumDTO;
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -40,7 +39,14 @@ public class LastFmServiceImpl implements LastFmService {
                     }
                     addTracksToCollection(currentPage);
                 });
-        trackCollection.forEach(TrackDTO::setPlayCount);
+
+        final Set<AlbumDTO> uniqueAlbums = trackCollection.entrySet().stream()
+                .map(e -> {
+                    e.getKey().setPlayCount(e.getValue());
+                    return e.getKey();
+                })
+                .map(t -> conversionService.convert(t, AlbumDTO.class))
+                .collect(Collectors.toSet());
     }
 
     @Override
