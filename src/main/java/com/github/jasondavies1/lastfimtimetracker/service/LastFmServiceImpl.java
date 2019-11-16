@@ -1,7 +1,6 @@
 package com.github.jasondavies1.lastfimtimetracker.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.jasondavies1.lastfimtimetracker.domain.AlbumDTO;
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -30,23 +31,24 @@ public class LastFmServiceImpl implements LastFmService {
     @Override
     public void getAllTracks() throws IOException {
         //TODO inline this variable if/when logging statement removed
-        final int totalPages = totalPages();
+        final int totalPages = getNumberOfPages();
 
-        IntStream.rangeClosed(1, totalPages)
+        IntStream.rangeClosed(1, 1)
                 .forEach(currentPage -> {
                     if (currentPage % 10 == 0) {
                         log.info("processing page {} of {}", currentPage, totalPages);
                     }
                     addTracksToCollection(currentPage);
                 });
+    }
 
-        final Set<AlbumDTO> uniqueAlbums = trackCollection.entrySet().stream()
-                .map(e -> {
-                    e.getKey().setPlayCount(e.getValue());
-                    return e.getKey();
-                })
-                .map(t -> conversionService.convert(t, AlbumDTO.class))
-                .collect(Collectors.toSet());
+    @Override
+    public int getNumberOfPages() throws IOException {
+        final String body = getPage(1);
+        final Map map = objectMapper.readValue(body, Map.class);
+        final Map recentTracks = (Map) map.get("recenttracks");
+        final Map attributes = (Map) recentTracks.get("@attr");
+        return Integer.valueOf((String) attributes.get("totalPages"));
     }
 
     @Override
@@ -56,12 +58,9 @@ public class LastFmServiceImpl implements LastFmService {
         System.out.println(forEntity.getBody());
     }
 
-    private int totalPages() throws IOException {
-        final String body = getPage(1);
-        final Map map = objectMapper.readValue(body, Map.class);
-        final Map recentTracks = (Map) map.get("recenttracks");
-        final Map attributes = (Map) recentTracks.get("@attr");
-        return Integer.valueOf((String) attributes.get("totalPages"));
+    @Override
+    public Map getPageOfScrobbles(final int pageNumber) throws IOException {
+        return objectMapper.readValue(getPage(pageNumber), Map.class);
     }
 
     private String getPage(final int pageNumber) {

@@ -1,17 +1,16 @@
 package com.github.jasondavies1.lastfimtimetracker.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(exclude = "timestamp")
 public class TrackDTO {
     private String trackName;
     private String artist;
     private String albumName;
     private Integer playCount;
+    private String timestamp;
 }

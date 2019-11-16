@@ -1,6 +1,6 @@
 package com.github.jasondavies1.lastfimtimetracker.controller;
 
-import com.github.jasondavies1.lastfimtimetracker.service.LastFmService;
+import com.github.jasondavies1.lastfimtimetracker.service.PersistenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,20 +8,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-
 @RestController
-@RequestMapping("/")
+@RequestMapping("/persist")
 @RequiredArgsConstructor
-public class ApplicationController {
+public class PersistenceController {
 
-    private final LastFmService lastFmService;
+    private final PersistenceService persistenceService;
 
     @GetMapping
     @ResponseBody
-    public ResponseEntity get() throws IOException {
-        lastFmService.getAllTracks();
-        return ResponseEntity.ok("hello world");
+    public ResponseEntity persistTracks() {
+        persistenceService.persistTracks();
+        return ResponseEntity.ok("persisted");
     }
 
 }

@@ -12,11 +12,13 @@ public class MapToTrackDtoConverter implements Converter<Map, TrackDTO> {
     @Override
     public TrackDTO convert(final Map trackDetails) {
         final Map artist = (Map) trackDetails.get("artist");
+        final Map date = (Map) trackDetails.get("date");
         final Map album = (Map) trackDetails.get("album");
         return TrackDTO.builder()
                 .artist((String) artist.get("name"))
                 .albumName((String) album.get("#text"))
                 .trackName((String) trackDetails.get("name"))
+                .timestamp((String) date.get("uts"))
                 .build();
     }
 }
