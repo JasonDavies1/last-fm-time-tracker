@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -26,20 +23,28 @@ public class LastFmServiceImpl implements LastFmService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    private final Map<TrackDTO, Integer> trackCollection = new HashMap<>();
-
     @Override
-    public void getAllTracks() throws IOException {
+    @SuppressWarnings("unchecked")
+    public List<TrackDTO> getAllTracks() throws IOException {
         //TODO inline this variable if/when logging statement removed
         final int totalPages = getNumberOfPages();
-
+        final List<TrackDTO> allTracks = new ArrayList<>();
         IntStream.rangeClosed(1, 1)
                 .forEach(currentPage -> {
                     if (currentPage % 10 == 0) {
                         log.info("processing page {} of {}", currentPage, totalPages);
                     }
-                    addTracksToCollection(currentPage);
+                    try {
+                        final Map map = objectMapper.readValue(getPage(currentPage), Map.class);
+                        final Map recentTracks = (Map) map.get("recenttracks");
+                        final List track = (List) recentTracks.get("track");
+                        track.forEach(t -> allTracks.add(conversionService.convert(t, TrackDTO.class)));
+                    } catch (final IOException e) {
+                        System.out.println("IOException");
+                    }
                 });
+
+        return allTracks;
     }
 
     @Override
@@ -69,20 +74,4 @@ public class LastFmServiceImpl implements LastFmService {
         return forEntity.getBody();
     }
 
-    @SuppressWarnings("unchecked")
-    private void addTracksToCollection(final int page) {
-        try {
-            final Map map = objectMapper.readValue(getPage(page), Map.class);
-            final Map recentTracks = (Map) map.get("recenttracks");
-            final List track = (List) recentTracks.get("track");
-            track.stream()
-                    .map(t -> conversionService.convert(t, TrackDTO.class))
-                    .forEach(trackDto -> Optional.ofNullable(trackCollection.get(trackDto))
-                            .ifPresentOrElse(
-                                    playCount -> trackCollection.put((TrackDTO) trackDto, (playCount + 1)),
-                                    () -> trackCollection.put((TrackDTO) trackDto, 1)));
-        } catch (final IOException e) {
-            System.out.println("IOException");
-        }
-    }
 }
