@@ -62,11 +62,6 @@ public class LastFmServiceImpl implements LastFmService {
         System.out.println(forEntity.getBody());
     }
 
-    @Override
-    public Map getPageOfScrobbles(final int pageNumber) throws IOException {
-        return objectMapper.readValue(getPage(pageNumber), Map.class);
-    }
-
     private String getPage(final int pageNumber) {
         final String url = urlService.getTracksUrl(pageNumber);
         final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
