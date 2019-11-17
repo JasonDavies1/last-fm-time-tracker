@@ -29,7 +29,7 @@ public class LastFmServiceImpl implements LastFmService {
         //TODO inline this variable if/when logging statement removed
         final int totalPages = getNumberOfPages();
         final List<TrackDTO> allTracks = new ArrayList<>();
-        IntStream.rangeClosed(1, 1)
+        IntStream.rangeClosed(1, totalPages)
                 .forEach(currentPage -> {
                     if (currentPage % 10 == 0) {
                         log.info("processing page {} of {}", currentPage, totalPages);
@@ -43,7 +43,6 @@ public class LastFmServiceImpl implements LastFmService {
                         System.out.println("IOException");
                     }
                 });
-
         return allTracks;
     }
 

@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -32,32 +30,14 @@ public class PersistenceServiceImpl implements PersistenceService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void persistAllTracks() {
         try {
-            final int totalPages = lastFmService.getNumberOfPages();
-            IntStream.rangeClosed(1, totalPages)
-                    .forEach(currentPage -> {
-                        if (currentPage % 10 == 0) {
-                            log.info("Initial store is on page {} of {}", currentPage, totalPages);
-                        }
-                        try {
-                            final Map map = lastFmService.getPageOfScrobbles(currentPage);
-                            final Map recentTracks = (Map) map.get("recenttracks");
-                            final List tracks = (List) recentTracks.get("track");
-                            tracks.forEach(t -> {
-                                final Map trackMap = (Map) t;
-                                final TrackDTO trackDTO
-                                        = conversionService.convert(trackMap, TrackDTO.class);
-                                final Track savedTrack =
-                                        trackRepository.findByArtistNameAndTrackName(trackDTO.getArtist(), trackDTO.getTrackName())
-                                                .orElseGet(() -> trackRepository.save(conversionService.convert(trackDTO, Track.class)));
-                                scrobbleRepository.save(trackToScrobbleConverter.convert(trackDTO, savedTrack));
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+            final List<TrackDTO> allTracks = lastFmService.getAllTracks();
+            allTracks.forEach(t -> {
+                final Track savedTrack = trackRepository.findByArtistNameAndTrackName(t.getArtist(), t.getTrackName())
+                        .orElseGet(() -> trackRepository.save(conversionService.convert(t, Track.class)));
+                scrobbleRepository.save(trackToScrobbleConverter.convert(t, savedTrack));
+            });
         } catch (final IOException e) {
             System.out.println("IOException");
         }
@@ -67,6 +47,5 @@ public class PersistenceServiceImpl implements PersistenceService {
     public int scrobbleCount() {
         return scrobbleRepository.findAll().size();
     }
-
 
 }
