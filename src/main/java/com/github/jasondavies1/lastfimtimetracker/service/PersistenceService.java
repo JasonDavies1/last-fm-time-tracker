@@ -6,6 +6,8 @@ public interface PersistenceService {
 
     void persistAllTracks();
 
+    int getHighestTimestamp();
+
     int scrobbleCount();
 
 

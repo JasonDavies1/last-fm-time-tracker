@@ -24,6 +24,21 @@ public class LastFmUrlServiceImpl implements LastFmUrlService {
     }
 
     @Override
+    public String getRecentTracksUrl(
+            final int page,
+            final int timestampFrom) {
+        return "http://ws.audioscrobbler.com/2.0/" +
+                "?method=user.getrecenttracks" +
+                "&user=JasonDavies_" +
+                "&from=" + timestampFrom +
+                "&page=" + page +
+                "&limit=200" +
+                "&extended=1" +
+                "&api_key=" + lastFmConfigurationProperties.getApiKey()+
+                "&format=json";
+    }
+
+    @Override
     public String getAlbumsUrl(
             final String artistName,
             final String albumName) {

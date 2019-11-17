@@ -2,6 +2,7 @@ package com.github.jasondavies1.lastfimtimetracker.service;
 
 import com.github.jasondavies1.lastfimtimetracker.converter.TrackToScrobbleConverter;
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
+import com.github.jasondavies1.lastfimtimetracker.domain.persistence.Scrobble;
 import com.github.jasondavies1.lastfimtimetracker.domain.persistence.Track;
 import com.github.jasondavies1.lastfimtimetracker.repository.ScrobbleRepository;
 import com.github.jasondavies1.lastfimtimetracker.repository.TrackRepository;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,6 +43,14 @@ public class PersistenceServiceImpl implements PersistenceService {
         } catch (final IOException e) {
             System.out.println("IOException");
         }
+    }
+
+    @Override
+    public int getHighestTimestamp(){
+        return scrobbleRepository.findAll().stream()
+                .map(Scrobble::getTimestamp)
+                .map(Integer::valueOf)
+                .collect(Collectors.summarizingInt(Integer::intValue)).getMax();
     }
 
     @Override

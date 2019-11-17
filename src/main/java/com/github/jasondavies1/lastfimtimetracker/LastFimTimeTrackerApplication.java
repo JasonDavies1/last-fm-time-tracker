@@ -27,7 +27,8 @@ public class LastFimTimeTrackerApplication implements CommandLineRunner {
             log.info("No scrobbles recorded, retrieving and persisting all data for account");
             persistenceService.persistAllTracks();
         } else {
-            log.info("{} Scrobbles found", persistenceService.scrobbleCount());
+            log.info("Existing scrobbles found: {}", persistenceService.scrobbleCount());
+            log.info("Updating from timestamp: {}...", persistenceService.getHighestTimestamp());
             //TODO: implement persistenceService.persistTracksFromUpdate();
         }
     }
