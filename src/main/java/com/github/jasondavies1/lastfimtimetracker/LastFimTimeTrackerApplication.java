@@ -22,14 +22,20 @@ public class LastFimTimeTrackerApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(final String... args) {
         if (persistenceService.noDataInDatabase()){
             log.info("No scrobbles recorded, retrieving and persisting all data for account");
             persistenceService.persistAllTracks();
         } else {
-            log.info("Existing scrobbles found: {}", persistenceService.scrobbleCount());
-            log.info("Updating from timestamp: {}...", persistenceService.getHighestTimestamp());
-            //TODO: implement persistenceService.persistTracksFromUpdate();
+            final int preUpdateCount = persistenceService.scrobbleCount();
+            final int highestTimestamp = persistenceService.getHighestTimestamp();
+            log.info("Existing scrobbles found: {}", preUpdateCount);
+            log.info("Updating from timestamp: {}...", highestTimestamp);
+            persistenceService.persistAllTracksFromTimestamp(highestTimestamp);
+            final int postUpdateCount = persistenceService.scrobbleCount();
+            log.info("Successfully added {} scrobbles. Total scrobble count: {}",
+                    (postUpdateCount - preUpdateCount),
+                    postUpdateCount);
         }
     }
 }

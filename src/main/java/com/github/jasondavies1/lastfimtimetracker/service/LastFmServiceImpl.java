@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 @Slf4j
@@ -24,35 +26,38 @@ public class LastFmServiceImpl implements LastFmService {
     private final ObjectMapper objectMapper;
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<TrackDTO> getAllTracks() throws IOException {
-        //TODO inline this variable if/when logging statement removed
-        final int totalPages = getNumberOfPages();
+    public List<TrackDTO> getAllTracks() {
         final List<TrackDTO> allTracks = new ArrayList<>();
-        IntStream.rangeClosed(1, totalPages)
+        IntStream.rangeClosed(1, getNumberOfPages(urlService.getRecentTracksUrl(1)))
                 .forEach(currentPage -> {
-                    if (currentPage % 10 == 0) {
-                        log.info("processing page {} of {}", currentPage, totalPages);
-                    }
-                    try {
-                        final Map map = objectMapper.readValue(getPage(currentPage), Map.class);
-                        final Map recentTracks = (Map) map.get("recenttracks");
-                        final List track = (List) recentTracks.get("track");
-                        track.forEach(t -> allTracks.add(conversionService.convert(t, TrackDTO.class)));
-                    } catch (final IOException e) {
-                        System.out.println("IOException");
-                    }
+                    final String currentUrl = urlService.getRecentTracksUrl(currentPage);
+                    addTracksToCollection(allTracks, currentUrl);
                 });
         return allTracks;
     }
 
     @Override
-    public int getNumberOfPages() throws IOException {
-        final String body = getPage(1);
-        final Map map = objectMapper.readValue(body, Map.class);
-        final Map recentTracks = (Map) map.get("recenttracks");
-        final Map attributes = (Map) recentTracks.get("@attr");
-        return Integer.valueOf((String) attributes.get("totalPages"));
+    public List<TrackDTO> getAllTracksFromTimestamp(int timestamp) {
+        final List<TrackDTO> allTracks = new ArrayList<>();
+        IntStream.rangeClosed(1, getNumberOfPages(urlService.getRecentTracksUrlFromTimestamp(1, timestamp)))
+                .forEach(currentPage -> {
+                    final String currentUrl = urlService.getRecentTracksUrlFromTimestamp(currentPage, timestamp);
+                    addTracksToCollection(allTracks, currentUrl);
+                });
+        return allTracks;
+    }
+
+    @Override
+    public int getNumberOfPages(final String url) {
+        final String body = getPage(url);
+        try {
+            final Map map = objectMapper.readValue(body, Map.class);
+            final Map recentTracks = (Map) map.get("recenttracks");
+            final Map attributes = (Map) recentTracks.get("@attr");
+            return Integer.valueOf((String) attributes.get("totalPages"));
+        } catch (final IOException e) {
+            return 0;
+        }
     }
 
     @Override
@@ -62,10 +67,22 @@ public class LastFmServiceImpl implements LastFmService {
         System.out.println(forEntity.getBody());
     }
 
-    private String getPage(final int pageNumber) {
-        final String url = urlService.getTracksUrl(pageNumber);
-        final ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
-        return forEntity.getBody();
+    @SuppressWarnings("unchecked")
+    private void addTracksToCollection(
+            final List<TrackDTO> allTracks,
+            final String currentUrl) {
+        try {
+            final Map map = objectMapper.readValue(getPage(currentUrl), Map.class);
+            final Map recentTracks = (Map) map.get("recenttracks");
+            final List track = (List) recentTracks.get("track");
+            track.forEach(t -> allTracks.add(conversionService.convert(t, TrackDTO.class)));
+        } catch (final IOException e) {
+            System.out.println("IOException");
+        }
+    }
+
+    private String getPage(final String url) {
+        return restTemplate.getForEntity(url, String.class).getBody();
     }
 
 }

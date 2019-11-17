@@ -11,7 +11,7 @@ public class LastFmUrlServiceImpl implements LastFmUrlService {
     private final LastFmConfigurationProperties lastFmConfigurationProperties;
 
     @Override
-    public String getTracksUrl(int page) {
+    public String getRecentTracksUrl(int page) {
         return "http://ws.audioscrobbler.com/2.0/" +
                 "?method=user.getrecenttracks" +
                 "&user=JasonDavies_" +
@@ -24,7 +24,7 @@ public class LastFmUrlServiceImpl implements LastFmUrlService {
     }
 
     @Override
-    public String getRecentTracksUrl(
+    public String getRecentTracksUrlFromTimestamp(
             final int page,
             final int timestampFrom) {
         return "http://ws.audioscrobbler.com/2.0/" +

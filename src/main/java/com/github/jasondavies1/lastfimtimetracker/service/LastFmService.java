@@ -2,14 +2,15 @@ package com.github.jasondavies1.lastfimtimetracker.service;
 
 import com.github.jasondavies1.lastfimtimetracker.domain.TrackDTO;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface LastFmService {
 
-    List<TrackDTO> getAllTracks() throws IOException;
+    List<TrackDTO> getAllTracks();
 
-    int getNumberOfPages() throws IOException;
+    List<TrackDTO> getAllTracksFromTimestamp(int timestamp);
+
+    int getNumberOfPages(String url);
 
     void getAlbum();
 }

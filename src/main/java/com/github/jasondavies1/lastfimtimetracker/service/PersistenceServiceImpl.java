@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,20 +32,24 @@ public class PersistenceServiceImpl implements PersistenceService {
 
     @Override
     public void persistAllTracks() {
-        try {
-            final List<TrackDTO> allTracks = lastFmService.getAllTracks();
-            allTracks.forEach(t -> {
-                final Track savedTrack = trackRepository.findByArtistNameAndTrackName(t.getArtist(), t.getTrackName())
-                        .orElseGet(() -> trackRepository.save(conversionService.convert(t, Track.class)));
-                scrobbleRepository.save(trackToScrobbleConverter.convert(t, savedTrack));
-            });
-        } catch (final IOException e) {
-            System.out.println("IOException");
-        }
+        persistAllTracksAndScrobbles(lastFmService.getAllTracks());
     }
 
     @Override
-    public int getHighestTimestamp(){
+    public void persistAllTracksFromTimestamp(int highestTimestamp) {
+        persistAllTracksAndScrobbles(lastFmService.getAllTracksFromTimestamp(highestTimestamp));
+    }
+
+    private void persistAllTracksAndScrobbles(final List<TrackDTO> trackDTOS) {
+        trackDTOS.forEach(t -> {
+            final Track savedTrack = trackRepository.findByArtistNameAndTrackName(t.getArtist(), t.getTrackName())
+                    .orElseGet(() -> trackRepository.save(conversionService.convert(t, Track.class)));
+            scrobbleRepository.save(trackToScrobbleConverter.convert(t, savedTrack));
+        });
+    }
+
+    @Override
+    public int getHighestTimestamp() {
         return scrobbleRepository.findAll().stream()
                 .map(Scrobble::getTimestamp)
                 .map(Integer::valueOf)
