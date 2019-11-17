@@ -2,10 +2,7 @@ package com.github.jasondavies1.lastfimtimetracker.domain.persistence;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Data
@@ -15,9 +12,16 @@ public class Track {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(columnDefinition = "TEXT")
     private String artistName;
+
+    @Column(columnDefinition = "TEXT")
     private String albumName;
+
+    @Column(columnDefinition = "TEXT")
     private String trackName;
+
+    @Column(name = "duration")
     private String durationInSeconds;
 
 }

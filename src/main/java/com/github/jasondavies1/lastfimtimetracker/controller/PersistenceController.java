@@ -18,7 +18,7 @@ public class PersistenceController {
     @GetMapping
     @ResponseBody
     public ResponseEntity persistTracks() {
-        persistenceService.persistTracks();
+        persistenceService.persistAllTracks();
         return ResponseEntity.ok("persisted");
     }
 
